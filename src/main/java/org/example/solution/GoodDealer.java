@@ -6,10 +6,26 @@ import org.example.InvalidPokerBoardException;
 import org.example.PokerResult;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class GoodDealer implements Dealer {
 
     private final LinkedList<String> cards;
+
+    @SuppressWarnings("unchecked")
+    private final static Function<List<String>, HandWeight>[] checks = new Function[]{
+            (Function<List<String>, HandWeight>) GoodDealer::isRoyalFlush,
+            (Function<List<String>, HandWeight>) GoodDealer::isStraightFlush,
+            (Function<List<String>, HandWeight>) GoodDealer::isKare,
+            (Function<List<String>, HandWeight>) GoodDealer::isFullHouse,
+            (Function<List<String>, HandWeight>) GoodDealer::isFlush,
+            (Function<List<String>, HandWeight>) GoodDealer::isStraight,
+            (Function<List<String>, HandWeight>) GoodDealer::isSet,
+            (Function<List<String>, HandWeight>) GoodDealer::isTwoPair,
+            (Function<List<String>, HandWeight>) GoodDealer::isOnePair,
+            (Function<List<String>, HandWeight>) GoodDealer::isHighCard,
+    };
+
 
     public GoodDealer() {
         this.cards = new LinkedList<>();
@@ -61,8 +77,73 @@ public class GoodDealer implements Dealer {
 
     @Override
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
-        List<String> cardsList= checkBoard(board);
-        System.out.println(cardsList.toString());
+
+        List<String> cardsList = checkBoard(board);
+        HandWeight firstPlayer = new HandWeight();
+        HandWeight secondPlayer = new HandWeight();
+
+        for (Function<List<String>, HandWeight> check : checks) {
+            HandWeight result = check.apply(cardsList.subList(0, cardsList.size() - 2));
+            if (result != null) {
+                firstPlayer.setCombination(result.getCombination());
+                firstPlayer.setWeight(result.getWeight());
+                System.out.println("Found a valid combination!");
+                break;
+            }
+        }
+        for (Function<List<String>, HandWeight> check : checks) {
+            HandWeight result = check.apply(cardsList.subList(2, cardsList.size()));
+            if (result != null) {
+                secondPlayer.setCombination(result.getCombination());
+                secondPlayer.setWeight(result.getWeight());
+                System.out.println("Found a valid combination!");
+                break;
+            }
+        }
+        int result = firstPlayer.compareTo(secondPlayer);
+        if (result > 0) return PokerResult.PLAYER_ONE_WIN;
+        if (result < 0) return PokerResult.PLAYER_TWO_WIN;
+        return PokerResult.DRAW;
+    }
+
+
+    private static HandWeight isRoyalFlush(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isStraightFlush(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isKare(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isFullHouse(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isFlush(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isStraight(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isSet(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isTwoPair(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isOnePair(List<String> cardsList) {
+        return null;
+    }
+
+    private static HandWeight isHighCard(List<String> cardsList) {
         return null;
     }
 
@@ -73,7 +154,7 @@ public class GoodDealer implements Dealer {
      * 2-6 - общие карты
      * 7-8 - рука игрока №2
      *
-     * @param  board
+     * @param board
      * @throws InvalidPokerBoardException
      */
     private List<String> checkBoard(Board board) throws InvalidPokerBoardException {
