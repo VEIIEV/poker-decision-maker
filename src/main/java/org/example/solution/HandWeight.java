@@ -1,9 +1,11 @@
 package org.example.solution;
 
+import java.util.List;
+
 public class HandWeight implements Comparable<HandWeight> {
     private Combination combination;
     private int weight;
-
+    private List<String> unusedCard;
 
     public HandWeight() {
         this.combination = Combination.HighCard;
@@ -13,6 +15,12 @@ public class HandWeight implements Comparable<HandWeight> {
     public HandWeight(Combination combination, int weight) {
         this.combination = combination;
         this.weight = weight;
+    }
+
+    public HandWeight(Combination combination, int i, List<String> unusedCard) {
+        this.combination = combination;
+        this.weight = weight;
+        this.unusedCard = unusedCard;
     }
 
     public Combination getCombination() {
@@ -31,6 +39,13 @@ public class HandWeight implements Comparable<HandWeight> {
         this.weight = weight;
     }
 
+    public List<String> getUnusedCard() {
+        return unusedCard;
+    }
+
+    public void setUnusedCard(List<String> unusedCard) {
+        this.unusedCard = unusedCard;
+    }
 
     @Override
     public int compareTo(HandWeight other) {
