@@ -56,4 +56,13 @@ public class HandWeight implements Comparable<HandWeight> {
 
         return Integer.compare(this.weight, other.weight);
     }
+
+    @Override
+    public String toString() {
+        return "HandWeight{" +
+                "combination=" + combination +
+                ", weight=" + weight +
+                ", unusedCard=" + unusedCard +
+                '}';
+    }
 }

@@ -5,9 +5,12 @@ import org.example.Dealer;
 import org.example.InvalidPokerBoardException;
 import org.example.PokerResult;
 
+import javax.print.attribute.HashDocAttributeSet;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class GoodDealer implements Dealer {
 
@@ -83,29 +86,35 @@ public class GoodDealer implements Dealer {
         HandWeight firstPlayer = new HandWeight();
         HandWeight secondPlayer = new HandWeight();
 
-        for (Function<List<String>, HandWeight> check : checks) {
-            HandWeight result = check.apply(cardsList.subList(0, cardsList.size() - 2));
-            if (result != null) {
-                firstPlayer.setCombination(result.getCombination());
-                firstPlayer.setWeight(result.getWeight());
-                System.out.println("Found a valid combination!");
-                break;
-            }
-        }
-        for (Function<List<String>, HandWeight> check : checks) {
-            HandWeight result = check.apply(cardsList.subList(2, cardsList.size()));
-            if (result != null) {
-                secondPlayer.setCombination(result.getCombination());
-                secondPlayer.setWeight(result.getWeight());
-                System.out.println("Found a valid combination!");
-                break;
-            }
-        }
+        List<String> player1Cards = cardsList.subList(0, cardsList.size() - 2);
+        firstPlayer = getHandWeight(player1Cards);
+        List<String> temp = cardsList.subList(2, cardsList.size());
+
+        List<String> lastTwo = temp.subList(temp.size() - 2, temp.size());
+        List<String> player2Cards = new ArrayList<>(lastTwo);
+        player2Cards.addAll(temp.subList(0, temp.size() - 2));
+
+        secondPlayer = getHandWeight(player2Cards);
+        System.out.println(firstPlayer);
+        System.out.println(secondPlayer);
         //todo реализовать проверку кикеров с руки по незадействованным в комбинации картам в методе compareTo
         int result = firstPlayer.compareTo(secondPlayer);
         if (result > 0) return PokerResult.PLAYER_ONE_WIN;
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
         return PokerResult.DRAW;
+    }
+
+    private HandWeight getHandWeight(List<String> player1Cards) {
+        HandWeight hand = new HandWeight();
+        for (Function<List<String>, HandWeight> check : checks) {
+            HandWeight result = check.apply(player1Cards);
+            if (result != null) {
+                hand = result;
+                System.out.println("Found a valid combination!");
+                break;
+            }
+        }
+        return hand;
     }
 
     private static HandWeight isRoyalFlush(List<String> cardsList) {
@@ -132,10 +141,9 @@ public class GoodDealer implements Dealer {
             for (int i = ranks.size() - 1; i >= 5; i--) {
                 List<String> straight = ranks.subList(i - 5, i);
                 if (new HashSet<>(suitedCards).containsAll(straight)) {
-                    List<String> unusedCard = cardsList
-                            .subList(0, 2).stream()
-                            .filter(card -> !straight.contains(card)).toList();
-                    return new HandWeight(Combination.StraightFlush, i, unusedCard);
+                    List<String> unused = cardsList.subList(0, 2);
+                    unused.removeIf(suitedCards::contains);
+                    return new HandWeight(Combination.StraightFlush, i, unused);
                 }
             }
         }
@@ -144,6 +152,97 @@ public class GoodDealer implements Dealer {
     }
 
     private static HandWeight isKare(List<String> cardsList) {
+        return searchMaxRankOfStackedCards(cardsList, 4, Combination.Kare);
+
+    }
+
+    private static HandWeight isFullHouse(List<String> cardsList) {
+        HandWeight setPart = searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
+        if (setPart == null) return null;
+        int setWeight = setPart.getWeight() * 100;
+        List<String> remainsCards = cardsList
+                .stream()
+                .map(card -> {
+                            if (parseRank(card.substring(0, card.length() - 1)) == setPart.getWeight() / 100) return "0*";
+                            return card;
+                        }
+                )
+                .toList();
+        HandWeight pairPart = searchMaxRankOfStackedCards(remainsCards, 2, Combination.OnePair);
+        if (pairPart == null) return null;
+        return new HandWeight(Combination.FullHouse, setWeight + pairPart.getWeight(), pairPart.getUnusedCard());
+    }
+
+//   todo определять неисопльзованные карты по suits
+    private static HandWeight isFlush(List<String> cardsList) {
+        List<String> suits = List.of("C", "D", "H", "S");
+
+        for (String suit : suits) {
+            List<String> suitedCards = cardsList.stream()
+                    .filter(card -> card.endsWith(suit))
+                    .map(card -> card.substring(0, card.length() - 1))
+                    .toList();
+            if (suitedCards.size() < 5) continue;
+            Integer weight = suitedCards
+                    .stream()
+                    .map(GoodDealer::parseRank)
+                    .max(Integer::compareTo).get();
+            List<String> unused = cardsList.subList(0, 2);
+            unused.removeIf(suitedCards::contains);
+            return new HandWeight(Combination.Flush, weight, unused);
+        }
+        return null;
+
+
+    }
+
+    private static HandWeight isStraight(List<String> cardsList) {
+        List<String> ranks = List.of("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A");
+
+        for (int i = ranks.size() - 1; i >= 5; i--) {
+            List<String> straight = ranks.subList(i - 5, i);
+            if (new HashSet<>(cardsList).containsAll(straight)) {
+                List<String> unused = cardsList.subList(0, 2);
+                unused.removeIf(straight::contains);
+                return new HandWeight(Combination.Straight, i, unused);
+            }
+        }
+
+        return null;
+    }
+
+    private static HandWeight isSet(List<String> cardsList) {
+        return searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
+    }
+
+    private static HandWeight isTwoPair(List<String> cardsList) {
+        HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
+        if (firstPart == null) return null;
+        int setWeight = firstPart.getWeight() * 100;
+        List<String> remainsCards = cardsList
+                .stream()
+                .map(card -> {
+                            if (parseRank(card.substring(0, card.length() - 1)) == firstPart.getWeight() / 100) return "0*";
+                            return card;
+                        }
+                )
+                .toList();
+        HandWeight secondPair = searchMaxRankOfStackedCards(remainsCards, 2, Combination.OnePair);
+        if (secondPair == null) return null;
+        return new HandWeight(Combination.TwoPair, setWeight + secondPair.getWeight(), secondPair.getUnusedCard());
+    }
+
+    private static HandWeight isOnePair(List<String> cardsList) {
+        return searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
+    }
+
+    private static HandWeight isHighCard(List<String> cardsList) {
+
+        return new HandWeight(Combination.HighCard, 0, cardsList.subList(0, 2));
+    }
+
+
+    private static HandWeight searchMaxRankOfStackedCards(List<String> cardsList, int amount, Combination combination) {
         List<Integer> ranksList = new ArrayList<>(cardsList
                 .stream()
                 .map(card -> card.substring(0, card.length() - 1))
@@ -153,46 +252,18 @@ public class GoodDealer implements Dealer {
         for (Integer card : ranksList) {
             rankCount.put(card, rankCount.getOrDefault(card, 0) + 1);
         }
-        Integer rankOfKare = rankCount.entrySet().stream()
-                .filter(entry -> entry.getValue() == 4)
+        Integer maxRank = rankCount.entrySet().stream()
+                .filter(entry -> entry.getValue() == amount)
                 .map(Map.Entry::getKey)
-                .findFirst().orElse(0);
+                .max(Integer::compare).orElse(0);
 
-        if (rankOfKare == 0) return null;
+        if (maxRank == 0) return null;
         List<Integer> hand = ranksList.subList(0, 2);
-        hand.removeIf(rank -> rank == rankOfKare);
-        return new HandWeight(Combination.Kare,
-                rankOfKare,
+        hand.removeIf(rank -> rank == maxRank);
+        return new HandWeight(combination,
+                maxRank,
                 hand.stream().map(rank -> rank.toString() + "*").toList());
 
-    }
-
-    private static HandWeight isFullHouse(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isFlush(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isStraight(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isSet(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isTwoPair(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isOnePair(List<String> cardsList) {
-        return null;
-    }
-
-    private static HandWeight isHighCard(List<String> cardsList) {
-        return null;
     }
 
 
