@@ -1,5 +1,6 @@
 package org.example.solution;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class HandWeight implements Comparable<HandWeight> {
@@ -61,15 +62,15 @@ public class HandWeight implements Comparable<HandWeight> {
         List<Integer> firstHand = this.unusedCard.stream()
                 .map(card -> card.substring(0, card.length() - 1))
                 .map(GoodDealer::parseRank)
-                .sorted()
+                .sorted(Comparator.reverseOrder())
                 .toList();
         List<Integer> secondhand = other.unusedCard.stream()
                 .map(card -> card.substring(0, card.length() - 1))
                 .map(GoodDealer::parseRank)
-                .sorted()
+                .sorted(Comparator.reverseOrder())
                 .toList();
         for (int i = 0; i < size; i++) {
-            int compareResult = this.unusedCard.get(i).compareTo(other.unusedCard.get(i));
+            int compareResult = firstHand.get(i).compareTo(secondhand.get(i));
             if (compareResult != 0) {
                 return compareResult;
             }
