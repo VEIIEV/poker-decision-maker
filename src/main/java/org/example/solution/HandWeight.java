@@ -50,11 +50,31 @@ public class HandWeight implements Comparable<HandWeight> {
     @Override
     public int compareTo(HandWeight other) {
         int combinationComparison = this.combination.compareTo(other.combination);
-        if (combinationComparison != 0) {
-            return combinationComparison;
+        if (combinationComparison != 0) return combinationComparison;
+        combinationComparison = Integer.compare(this.weight, other.weight);
+        if (combinationComparison != 0) return combinationComparison;
+        if (this.unusedCard.isEmpty() && other.unusedCard.isEmpty()) {
+            return 0;
         }
 
-        return Integer.compare(this.weight, other.weight);
+        int size = Math.min(this.unusedCard.size(), other.unusedCard.size());
+        List<Integer> firstHand = this.unusedCard.stream()
+                .map(card -> card.substring(0, card.length() - 1))
+                .map(GoodDealer::parseRank)
+                .sorted()
+                .toList();
+        List<Integer> secondhand = other.unusedCard.stream()
+                .map(card -> card.substring(0, card.length() - 1))
+                .map(GoodDealer::parseRank)
+                .sorted()
+                .toList();
+        for (int i = 0; i < size; i++) {
+            int compareResult = this.unusedCard.get(i).compareTo(other.unusedCard.get(i));
+            if (compareResult != 0) {
+                return compareResult;
+            }
+        }
+        return Integer.compare(this.unusedCard.size(), other.unusedCard.size());
     }
 
     @Override

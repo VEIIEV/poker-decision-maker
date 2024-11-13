@@ -32,6 +32,7 @@ public class GoodDealer implements Dealer {
 
 
     public GoodDealer() {
+//todo возможно стоит изначально хранить карты в set
         this.cards = new LinkedList<>();
         String[] suits = {"C", "D", "H", "S"};
         String[] ranks = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
@@ -173,7 +174,7 @@ public class GoodDealer implements Dealer {
         return new HandWeight(Combination.FullHouse, setWeight + pairPart.getWeight(), pairPart.getUnusedCard());
     }
 
-//   todo определять неисопльзованные карты по suits
+    //   todo определять неисопльзованные карты по suits
     private static HandWeight isFlush(List<String> cardsList) {
         List<String> suits = List.of("C", "D", "H", "S");
 
@@ -215,6 +216,8 @@ public class GoodDealer implements Dealer {
         return searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
     }
 
+
+    //    todo вероятно тут ошибка
     private static HandWeight isTwoPair(List<String> cardsList) {
         HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
         if (firstPart == null) return null;
@@ -241,7 +244,7 @@ public class GoodDealer implements Dealer {
         return new HandWeight(Combination.HighCard, 0, cardsList.subList(0, 2));
     }
 
-
+    //    todo вероятно тут ошибка
     private static HandWeight searchMaxRankOfStackedCards(List<String> cardsList, int amount, Combination combination) {
         List<Integer> ranksList = new ArrayList<>(cardsList
                 .stream()
@@ -300,7 +303,7 @@ public class GoodDealer implements Dealer {
         return cards;
     }
 
-    private static Integer parseRank(String rankInString) {
+    public static Integer parseRank(String rankInString) {
         return switch (rankInString) {
             case "J" -> 11;
             case "Q" -> 12;
