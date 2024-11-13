@@ -17,7 +17,7 @@ public class HandWeight implements Comparable<HandWeight> {
         this.weight = weight;
     }
 
-    public HandWeight(Combination combination, int i, List<String> unusedCard) {
+    public HandWeight(Combination combination, int weight, List<String> unusedCard) {
         this.combination = combination;
         this.weight = weight;
         this.unusedCard = unusedCard;

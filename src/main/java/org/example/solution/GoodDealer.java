@@ -5,12 +5,9 @@ import org.example.Dealer;
 import org.example.InvalidPokerBoardException;
 import org.example.PokerResult;
 
-import javax.print.attribute.HashDocAttributeSet;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 public class GoodDealer implements Dealer {
 
@@ -98,7 +95,6 @@ public class GoodDealer implements Dealer {
         secondPlayer = getHandWeight(player2Cards);
         System.out.println(firstPlayer);
         System.out.println(secondPlayer);
-        //todo реализовать проверку кикеров с руки по незадействованным в комбинации картам в методе compareTo
         int result = firstPlayer.compareTo(secondPlayer);
         if (result > 0) return PokerResult.PLAYER_ONE_WIN;
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
@@ -221,7 +217,7 @@ public class GoodDealer implements Dealer {
     private static HandWeight isTwoPair(List<String> cardsList) {
         HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
         if (firstPart == null) return null;
-        int setWeight = firstPart.getWeight() * 100;
+        int firstPairWeight = firstPart.getWeight() * 100;
         List<String> remainsCards = cardsList
                 .stream()
                 .map(card -> {
@@ -232,7 +228,7 @@ public class GoodDealer implements Dealer {
                 .toList();
         HandWeight secondPair = searchMaxRankOfStackedCards(remainsCards, 2, Combination.OnePair);
         if (secondPair == null) return null;
-        return new HandWeight(Combination.TwoPair, setWeight + secondPair.getWeight(), secondPair.getUnusedCard());
+        return new HandWeight(Combination.TwoPair, firstPairWeight + secondPair.getWeight(), secondPair.getUnusedCard());
     }
 
     private static HandWeight isOnePair(List<String> cardsList) {
