@@ -170,18 +170,18 @@ public class GoodDealer implements Dealer {
         return new HandWeight(Combination.FullHouse, setWeight + pairPart.getWeight(), pairPart.getUnusedCard());
     }
 
-    //   todo определять неисопльзованные карты по suits
+
     private static HandWeight isFlush(List<String> cardsList) {
         List<String> suits = List.of("C", "D", "H", "S");
 
         for (String suit : suits) {
             List<String> suitedCards = cardsList.stream()
                     .filter(card -> card.endsWith(suit))
-                    .map(card -> card.substring(0, card.length() - 1))
                     .toList();
             if (suitedCards.size() < 5) continue;
             Integer weight = suitedCards
                     .stream()
+                    .map(card -> card.substring(0, card.length() - 1))
                     .map(GoodDealer::parseRank)
                     .max(Integer::compareTo).get();
             List<String> unused = cardsList.subList(0, 2);
