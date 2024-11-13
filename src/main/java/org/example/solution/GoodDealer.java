@@ -81,8 +81,8 @@ public class GoodDealer implements Dealer {
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
 
         List<String> cardsList = checkBoard(board);
-        HandWeight firstPlayer = new HandWeight();
-        HandWeight secondPlayer = new HandWeight();
+        HandWeight firstPlayer;
+        HandWeight secondPlayer;
 
         List<String> player1Cards = cardsList.subList(0, cardsList.size() - 2);
         firstPlayer = getHandWeight(player1Cards);
@@ -160,7 +160,7 @@ public class GoodDealer implements Dealer {
         List<String> remainsCards = cardsList
                 .stream()
                 .map(card -> {
-                            if (parseRank(card.substring(0, card.length() - 1)) == setPart.getWeight() / 100) return "0*";
+                            if (parseRank(card.substring(0, card.length() - 1)) == setPart.getWeight()) return "0*";
                             return card;
                         }
                 )
@@ -221,7 +221,7 @@ public class GoodDealer implements Dealer {
         List<String> remainsCards = cardsList
                 .stream()
                 .map(card -> {
-                            if (parseRank(card.substring(0, card.length() - 1)) == firstPart.getWeight() / 100) return "0*";
+                            if (parseRank(card.substring(0, card.length() - 1)) == firstPart.getWeight()) return "0*";
                             return card;
                         }
                 )
@@ -236,8 +236,12 @@ public class GoodDealer implements Dealer {
     }
 
     private static HandWeight isHighCard(List<String> cardsList) {
+        Integer weight =  cardsList.subList(0, 2).stream()
+                .map(card -> card.substring(0, card.length()-1))
+                .map(GoodDealer::parseRank)
+                .max(Integer::compareTo).get();
 
-        return new HandWeight(Combination.HighCard, 0, cardsList.subList(0, 2));
+        return new HandWeight(Combination.HighCard, weight, cardsList.subList(0, 2));
     }
 
     //    todo вероятно тут ошибка
