@@ -12,6 +12,20 @@ import java.util.stream.Collectors;
 public class GoodDealer implements Dealer {
 
     private final LinkedList<String> cards;
+    private Board cache = null;
+
+    //  ожидаемое количество карт на столе на каждой стадии игры
+    private static final Map<Integer, Integer> stages = new HashMap<>();
+
+    static {
+        {
+            stages.put(0, 0);  //todo вероятно оно лишнее
+            stages.put(1, 4);
+            stages.put(2, 7);
+            stages.put(3, 8);
+            stages.put(4, 9);
+        }
+    }
 
     @SuppressWarnings("unchecked")
     private final static Function<List<String>, HandWeight>[] checks = new Function[]{
@@ -51,36 +65,47 @@ public class GoodDealer implements Dealer {
             player1.append(this.cards.pop());
             player2.append(this.cards.pop());
         }
-
-        return new Board(player1.toString(), player2.toString(), null, null, null);
+        Board board = new Board(player1.toString(), player2.toString(), null, null, null);
+        storeCache(board);
+        return board;
     }
 
     @Override
     public Board dealFlop(Board board) {
+        checkBoard(board, 1);
         StringBuilder flop = new StringBuilder();
         for (int i = 0; i < 3; i++) {
             flop.append(this.cards.pop());
         }
+        Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), flop.toString(), null, null);
+        storeCache(actualBoard);
 
-        return new Board(board.getPlayerOne(), board.getPlayerTwo(), flop.toString(), null, null);
+        return actualBoard;
     }
 
     @Override
     public Board dealTurn(Board board) {
+        checkBoard(board, 2);
+        Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), this.cards.pop(), null);
+        storeCache(actualBoard);
 
-        return new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), this.cards.pop(), null);
+        return actualBoard;
+
     }
 
     @Override
     public Board dealRiver(Board board) {
+        checkBoard(board, 3);
+        Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), board.getTurn(), this.cards.pop());
+        storeCache(actualBoard);
 
-        return new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), board.getTurn(), this.cards.pop());
+        return actualBoard;
     }
 
     @Override
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
-
-        List<String> cardsList = checkBoard(board);
+        checkBoard(board, 4);
+        List<String> cardsList = checkBoard(board, 4);
         HandWeight firstPlayer;
         HandWeight secondPlayer;
 
@@ -93,8 +118,6 @@ public class GoodDealer implements Dealer {
         player2Cards.addAll(temp.subList(0, temp.size() - 2));
 
         secondPlayer = getHandWeight(player2Cards);
-        System.out.println(firstPlayer);
-        System.out.println(secondPlayer);
         int result = firstPlayer.compareTo(secondPlayer);
         if (result > 0) return PokerResult.PLAYER_ONE_WIN;
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
@@ -107,7 +130,6 @@ public class GoodDealer implements Dealer {
             HandWeight result = check.apply(player1Cards);
             if (result != null) {
                 hand = result;
-                System.out.println("Found a valid combination!");
                 break;
             }
         }
@@ -236,10 +258,10 @@ public class GoodDealer implements Dealer {
     }
 
     private static HandWeight isHighCard(List<String> cardsList) {
-        Integer weight =  cardsList.subList(0, 2).stream()
-                .map(card -> card.substring(0, card.length()-1))
+        Integer weight = cardsList.subList(0, 2).stream()
+                .map(card -> card.substring(0, card.length() - 1))
                 .map(GoodDealer::parseRank)
-                .max(Integer::compareTo).get();
+                .max(Integer::compareTo).orElse(0);
 
         return new HandWeight(Combination.HighCard, weight, cardsList.subList(0, 2));
     }
@@ -262,7 +284,7 @@ public class GoodDealer implements Dealer {
 
         if (maxRank == 0) return null;
         List<Integer> hand = ranksList.subList(0, 2);
-        hand.removeIf(rank -> rank == maxRank);
+        hand.removeIf(rank -> Objects.equals(rank, maxRank));
         return new HandWeight(combination,
                 maxRank,
                 hand.stream().map(rank -> rank.toString() + "*").toList());
@@ -276,24 +298,50 @@ public class GoodDealer implements Dealer {
      * 2-6 - общие карты
      * 7-8 - рука игрока №2
      */
-    private List<String> checkBoard(Board board) throws InvalidPokerBoardException {
+    private List<String> checkBoard(Board board, int stage) throws InvalidPokerBoardException {
 
+        //todo думай что делать если они null
         List<String> cardsOnTable = new ArrayList<>();
         cardsOnTable.addAll(parseCards(board.getPlayerOne()));
         cardsOnTable.addAll(parseCards(board.getFlop()));
-        cardsOnTable.add(board.getTurn());
-        cardsOnTable.add(board.getRiver());
+        cardsOnTable.addAll(parseCards(board.getTurn()));
+        cardsOnTable.addAll(parseCards(board.getRiver()));
         cardsOnTable.addAll(parseCards(board.getPlayerTwo()));
 
-        if (!(cardsOnTable.size() == new HashSet<>(cardsOnTable).size())) throw new InvalidPokerBoardException("cards on the board isnt unique");
+
+        if (stages.get(stage) != cardsOnTable.size())
+            throw new InvalidPokerBoardException("количество карт не на столе не соответствует этапу игры");
+
+        if (!(Objects.equals(cache.getPlayerOne(), board.getPlayerOne()) &&
+                Objects.equals(cache.getPlayerTwo(), board.getPlayerTwo()) &&
+                Objects.equals(cache.getFlop(), board.getFlop()) &&
+                Objects.equals(cache.getTurn(), board.getTurn()) &&
+                Objects.equals(cache.getRiver(), board.getRiver())))
+            throw new InvalidPokerBoardException("карты были изменены между действиями дилера");
+
+
+        if (!(cardsOnTable.size() == new HashSet<>(cardsOnTable).size()))
+            throw new InvalidPokerBoardException("cards on the board isnt unique");
         return cardsOnTable;
     }
 
+
+    private void storeCache(Board board) {
+        this.cache = new Board(
+                board.getPlayerOne(),
+                board.getPlayerTwo(),
+                board.getFlop(),
+                board.getTurn(),
+                board.getRiver()
+        );
+    }
+
     private List<String> parseCards(String cardsInString) {
+        if (cardsInString == null) return new ArrayList<>();
         List<String> cards = new ArrayList<>();
         int i = 0;
 
-        while (i < cardsInString.length()) {
+        while (i < cardsInString.length()-1) {
             int rankLength = (cardsInString.charAt(i) == '1') ? 2 : 1;
             String card = cardsInString.substring(i, i + rankLength + 1);
             cards.add(card);

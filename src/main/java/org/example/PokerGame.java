@@ -9,9 +9,12 @@ public class PokerGame {
         board = dealer.dealFlop(board);
         board = dealer.dealTurn(board);
         board = dealer.dealRiver(board);
-        System.out.println(board.toString());
+//        System.out.println(board.toString());
         System.out.println(dealer.decideWinner(board));
 
-//        System.out.println(board.toString());
     }
 }
+
+
+// я проверяю стадию, соответствует ли количество карт на столе текущей стадии
+
