@@ -16,7 +16,8 @@ public class GoodDealer implements Dealer {
 
     //  ожидаемое количество карт на столе на каждой стадии игры
     private static final Map<Integer, Integer> stages = new HashMap<>();
-    private int actualStage =0;
+    private int actualStage = 0;
+
     static {
         {
             stages.put(0, 0);  //todo вероятно оно лишнее
@@ -58,7 +59,8 @@ public class GoodDealer implements Dealer {
 
     @Override
     public Board dealCardsToPlayers() {
-        if (this.actualStage!=0)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты игрокам");
+        if (this.actualStage != 0)
+            throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты игрокам");
         StringBuilder player1 = new StringBuilder();
         StringBuilder player2 = new StringBuilder();
 
@@ -75,7 +77,7 @@ public class GoodDealer implements Dealer {
 
     @Override
     public Board dealFlop(Board board) {
-        if (this.actualStage!=1)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать flop");
+        if (this.actualStage != 1) throw new InvalidPokerBoardException("Произошла попытка повторно раздать flop");
         checkBoard(board, actualStage);
         StringBuilder flop = new StringBuilder();
         for (int i = 0; i < 3; i++) {
@@ -90,7 +92,7 @@ public class GoodDealer implements Dealer {
 
     @Override
     public Board dealTurn(Board board) {
-        if (this.actualStage!=2)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать turn");
+        if (this.actualStage != 2) throw new InvalidPokerBoardException("Произошла попытка повторно раздать turn");
         checkBoard(board, actualStage);
         Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), this.cards.pop(), null);
         storeCache(actualBoard);
@@ -102,7 +104,8 @@ public class GoodDealer implements Dealer {
 
     @Override
     public Board dealRiver(Board board) {
-        if (this.actualStage!=3)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты river");
+        if (this.actualStage != 3)
+            throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты river");
         checkBoard(board, actualStage);
         Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), board.getTurn(), this.cards.pop());
         storeCache(actualBoard);
@@ -129,7 +132,7 @@ public class GoodDealer implements Dealer {
         secondPlayer = getHandWeight(player2Cards);
         int result = firstPlayer.compareTo(secondPlayer);
 
-        this.actualStage=0;
+        this.actualStage = 0;
         if (result > 0) return PokerResult.PLAYER_ONE_WIN;
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
         return PokerResult.DRAW;
@@ -246,7 +249,6 @@ public class GoodDealer implements Dealer {
     }
 
 
-    //    todo вероятно тут ошибка
     private static HandWeight isTwoPair(List<String> cardsList) {
         HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
         if (firstPart == null) return null;
@@ -277,7 +279,6 @@ public class GoodDealer implements Dealer {
         return new HandWeight(Combination.HighCard, weight, cardsList.subList(0, 2));
     }
 
-    //    todo вероятно тут ошибка
     private static HandWeight searchMaxRankOfStackedCards(List<String> cardsList, int amount, Combination combination) {
         List<Integer> ranksList = new ArrayList<>(cardsList
                 .stream()
@@ -311,7 +312,7 @@ public class GoodDealer implements Dealer {
      */
     private List<String> checkBoard(Board board, int stage) throws InvalidPokerBoardException {
 
-        //todo думай что делать если они null
+        //todo мб переписать это на цикл, в котором через рефлексию получать все гетеры и выполнять их
         List<String> cardsOnTable = new ArrayList<>();
         cardsOnTable.addAll(parseCards(board.getPlayerOne()));
         cardsOnTable.addAll(parseCards(board.getFlop()));
@@ -352,7 +353,7 @@ public class GoodDealer implements Dealer {
         List<String> cards = new ArrayList<>();
         int i = 0;
 
-        while (i < cardsInString.length()-1) {
+        while (i < cardsInString.length() - 1) {
             int rankLength = (cardsInString.charAt(i) == '1') ? 2 : 1;
             String card = cardsInString.substring(i, i + rankLength + 1);
             cards.add(card);

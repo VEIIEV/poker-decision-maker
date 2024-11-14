@@ -10,7 +10,7 @@ public class PokerGame {
         board = dealer.dealTurn(board);
         board = dealer.dealRiver(board);
 //        board = dealer.dealFlop(board);
-//        System.out.println(board.toString());
+        System.out.println(board.toString());
         System.out.println(dealer.decideWinner(board));
 
     }
