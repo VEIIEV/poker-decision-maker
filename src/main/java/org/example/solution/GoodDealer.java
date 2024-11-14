@@ -285,7 +285,7 @@ public class GoodDealer implements Dealer {
         cardsOnTable.add(board.getRiver());
         cardsOnTable.addAll(parseCards(board.getPlayerTwo()));
 
-        if (!(cardsOnTable.size() == new HashSet<>(cardsOnTable).size())) throw new InvalidPokerBoardException();
+        if (!(cardsOnTable.size() == new HashSet<>(cardsOnTable).size())) throw new InvalidPokerBoardException("cards on the board isnt unique");
         return cardsOnTable;
     }
 
