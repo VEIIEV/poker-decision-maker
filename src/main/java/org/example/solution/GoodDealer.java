@@ -16,7 +16,7 @@ public class GoodDealer implements Dealer {
 
     //  ожидаемое количество карт на столе на каждой стадии игры
     private static final Map<Integer, Integer> stages = new HashMap<>();
-
+    private int actualStage =0;
     static {
         {
             stages.put(0, 0);  //todo вероятно оно лишнее
@@ -58,6 +58,7 @@ public class GoodDealer implements Dealer {
 
     @Override
     public Board dealCardsToPlayers() {
+        if (this.actualStage!=0)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты игрокам");
         StringBuilder player1 = new StringBuilder();
         StringBuilder player2 = new StringBuilder();
 
@@ -67,12 +68,15 @@ public class GoodDealer implements Dealer {
         }
         Board board = new Board(player1.toString(), player2.toString(), null, null, null);
         storeCache(board);
+
+        this.actualStage++;
         return board;
     }
 
     @Override
     public Board dealFlop(Board board) {
-        checkBoard(board, 1);
+        if (this.actualStage!=1)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать flop");
+        checkBoard(board, actualStage);
         StringBuilder flop = new StringBuilder();
         for (int i = 0; i < 3; i++) {
             flop.append(this.cards.pop());
@@ -80,31 +84,36 @@ public class GoodDealer implements Dealer {
         Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), flop.toString(), null, null);
         storeCache(actualBoard);
 
+        this.actualStage++;
         return actualBoard;
     }
 
     @Override
     public Board dealTurn(Board board) {
-        checkBoard(board, 2);
+        if (this.actualStage!=2)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать turn");
+        checkBoard(board, actualStage);
         Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), this.cards.pop(), null);
         storeCache(actualBoard);
 
+        this.actualStage++;
         return actualBoard;
 
     }
 
     @Override
     public Board dealRiver(Board board) {
-        checkBoard(board, 3);
+        if (this.actualStage!=3)  throw new InvalidPokerBoardException("Произошла попытка повторно раздать карты river");
+        checkBoard(board, actualStage);
         Board actualBoard = new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), board.getTurn(), this.cards.pop());
         storeCache(actualBoard);
 
+        this.actualStage++;
         return actualBoard;
     }
 
     @Override
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
-        checkBoard(board, 4);
+        checkBoard(board, actualStage);
         List<String> cardsList = checkBoard(board, 4);
         HandWeight firstPlayer;
         HandWeight secondPlayer;
@@ -119,6 +128,8 @@ public class GoodDealer implements Dealer {
 
         secondPlayer = getHandWeight(player2Cards);
         int result = firstPlayer.compareTo(secondPlayer);
+
+        this.actualStage=0;
         if (result > 0) return PokerResult.PLAYER_ONE_WIN;
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
         return PokerResult.DRAW;
