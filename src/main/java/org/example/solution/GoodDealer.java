@@ -317,12 +317,12 @@ public class GoodDealer implements Dealer {
         }
 
         if (stage > 2) {
-            if (parseCards(board.getFlop()).size()!=1)
+            if (parseCards(board.getTurn()).size()!=1)
                 throw new InvalidPokerBoardException("turn haven't 1 cards");
         }
 
         if (stage > 3) {
-            if (parseCards(board.getFlop()).size()!=3)
+            if (parseCards(board.getRiver()).size()!=1)
                 throw new InvalidPokerBoardException("river haven't 1 cards");
         }
 

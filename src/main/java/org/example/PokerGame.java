@@ -8,7 +8,8 @@ public class PokerGame {
         Board board = dealer.dealCardsToPlayers();
         board = dealer.dealFlop(board);
         board = dealer.dealTurn(board);
-        dealer.dealFlop(new Board("AD4D7D", "6D", null, null, null));
+        board =dealer.dealFlop(new Board("4D7D", "6DAD", null, null, null));
+        board = dealer.dealTurn(board);
         board = dealer.dealRiver(board);
         System.out.println(board.toString());
         System.out.println(dealer.decideWinner(board));
