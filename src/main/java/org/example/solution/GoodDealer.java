@@ -88,7 +88,7 @@ public class GoodDealer implements Dealer {
     public Board dealTurn(Board board) {
         if (board.getTurn() != null ||
                 board.getRiver() != null) {
-            throw new InvalidPokerBoardException("Flop cards are already laid out on the board");
+            throw new InvalidPokerBoardException("Turn cards are already laid out on the board");
         }
         checkBoard(board, 2);
 
@@ -99,7 +99,7 @@ public class GoodDealer implements Dealer {
     @Override
     public Board dealRiver(Board board) {
         if (board.getRiver() != null) {
-            throw new InvalidPokerBoardException("Flop cards are already laid out on the board");
+            throw new InvalidPokerBoardException("River cards are already laid out on the board");
         }
         checkBoard(board, 3);
 
@@ -340,8 +340,11 @@ public class GoodDealer implements Dealer {
         cardsOnTable.addAll(parseCards(board.getRiver()));
         cardsOnTable.addAll(parseCards(board.getPlayerTwo()));
         boolean lol = !cards.containsAll(cardsOnTable);
-        if (!cards.containsAll(cardsOnTable))
-            throw new InvalidPokerBoardException("cards on table contains inappropriate symbols");
+        for (String card : cardsOnTable) {
+            if (!cards.contains(card)) {
+                throw new InvalidPokerBoardException("Invalid card found on the table: " + card);
+            }
+        }
         return cardsOnTable;
     }
 
