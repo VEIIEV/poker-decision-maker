@@ -5,14 +5,11 @@ import org.example.solution.GoodDealer;
 public class PokerGame {
     public static void main(String[] args) {
         Dealer dealer = new GoodDealer();
-        Board board = dealer.dealCardsToPlayers();
-        board = dealer.dealFlop(board);
-        board = dealer.dealTurn(board);
-        board =dealer.dealFlop(new Board("4D7D", "6DAD", null, null, null));
-        board = dealer.dealTurn(board);
-        board = dealer.dealRiver(board);
-        System.out.println(board.toString());
-        System.out.println(dealer.decideWinner(board));
+        Board board = new Board( "2CJH",  "2DJD",  "3H9SKH",  "QC",  "AS");
+
+        PokerResult result = dealer.decideWinner(board);
+
+        System.out.println(result);
 
     }
 }

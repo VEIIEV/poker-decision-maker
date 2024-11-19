@@ -69,7 +69,7 @@ public class HandWeight implements Comparable<HandWeight> {
                 .map(GoodDealer::parseRank)
                 .sorted(Comparator.reverseOrder())
                 .toList();
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size-2; i++) {
             int compareResult = firstHand.get(i).compareTo(secondhand.get(i));
             if (compareResult != 0) {
                 return compareResult;

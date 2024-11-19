@@ -285,11 +285,10 @@ public class GoodDealer implements Dealer {
                 .max(Integer::compare).orElse(0);
 
         if (maxRank == 0) return null;
-        List<Integer> hand = ranksList.subList(0, 2);
-        hand.removeIf(rank -> Objects.equals(rank, maxRank));
+        ranksList.removeIf(rank -> Objects.equals(rank, maxRank));
         return new HandWeight(combination,
                 maxRank,
-                hand.stream().map(rank -> rank.toString() + "*").toList());
+                ranksList.stream().map(rank -> rank.toString() + "*").toList());
 
     }
 
