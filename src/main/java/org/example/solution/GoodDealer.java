@@ -6,11 +6,10 @@ import org.example.InvalidPokerBoardException;
 import org.example.PokerResult;
 
 import java.util.*;
-import java.util.function.Function;
 
+import static org.example.solution.CombinationDefiner.getHandWeight;
 import static org.example.solution.Parser.parseBoard;
 import static org.example.solution.Parser.parseCards;
-import static org.example.solution.CombinationDefiner.getHandWeight;
 
 public class GoodDealer implements Dealer {
     private final LinkedList<String> cards;
@@ -117,8 +116,6 @@ public class GoodDealer implements Dealer {
         if (result < 0) return PokerResult.PLAYER_TWO_WIN;
         return PokerResult.DRAW;
     }
-
-
 
 
     /**
