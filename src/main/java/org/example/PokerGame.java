@@ -11,6 +11,7 @@ public class PokerGame {
         board = dealer.dealRiver(board);
 
         System.out.println(board);
+        board = new Board("2D3S", "3D3H", "QSJSKS", "10S", "AS");
         System.out.println(dealer.decideWinner(board));
     }
 }

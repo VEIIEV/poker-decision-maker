@@ -1,12 +1,13 @@
 package org.example.solution;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class HandWeight implements Comparable<HandWeight> {
     private Combination combination;
     private int weight;
-    private List<String> unusedCard;
+    private List<String> unusedCard = new ArrayList<String>();
 
     public HandWeight() {
         this.combination = Combination.HighCard;
