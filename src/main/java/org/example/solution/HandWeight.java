@@ -61,15 +61,15 @@ public class HandWeight implements Comparable<HandWeight> {
         int size = Math.min(this.unusedCard.size(), other.unusedCard.size());
         List<Integer> firstHand = this.unusedCard.stream()
                 .map(card -> card.substring(0, card.length() - 1))
-                .map(GoodDealer::parseRank)
+                .map(Parser::parseRank)
                 .sorted(Comparator.reverseOrder())
                 .toList();
         List<Integer> secondhand = other.unusedCard.stream()
                 .map(card -> card.substring(0, card.length() - 1))
-                .map(GoodDealer::parseRank)
+                .map(Parser::parseRank)
                 .sorted(Comparator.reverseOrder())
                 .toList();
-        for (int i = 0; i < size-2; i++) {
+        for (int i = 0; i < size - 2; i++) {
             int compareResult = firstHand.get(i).compareTo(secondhand.get(i));
             if (compareResult != 0) {
                 return compareResult;
