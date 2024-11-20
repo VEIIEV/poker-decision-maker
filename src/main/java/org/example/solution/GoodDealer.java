@@ -10,23 +10,10 @@ import java.util.function.Function;
 
 import static org.example.solution.Parser.parseBoard;
 import static org.example.solution.Parser.parseCards;
+import static org.example.solution.CombinationDefiner.getHandWeight;
 
 public class GoodDealer implements Dealer {
     private final LinkedList<String> cards;
-
-    @SuppressWarnings("unchecked")
-    private static final Function<List<String>, HandWeight>[] CHECKS = new Function[]{
-            (Function<List<String>, HandWeight>) CombinationDefiner::isRoyalFlush,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isStraightFlush,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isKare,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isFullHouse,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isFlush,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isStraight,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isSet,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isTwoPair,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isOnePair,
-            (Function<List<String>, HandWeight>) CombinationDefiner::isHighCard,
-    };
 
     private static final Map<Integer, Integer> STAGES = new HashMap<>();
 
@@ -131,39 +118,8 @@ public class GoodDealer implements Dealer {
         return PokerResult.DRAW;
     }
 
-    private HandWeight getHandWeight(List<String> player1Cards) {
-        HandWeight hand = new HandWeight();
-        for (Function<List<String>, HandWeight> check : CHECKS) {
-            HandWeight result = check.apply(player1Cards);
-            if (result != null) {
-                hand = result;
-                break;
-            }
-        }
-        return hand;
-    }
 
-    protected static HandWeight searchMaxRankOfStackedCards(List<String> cardsList, int amount, Combination combination) {
-        List<Integer> ranksList = new ArrayList<>(cardsList
-                .stream()
-                .map(card -> card.substring(0, card.length() - 1))
-                .map(Parser::parseRank)
-                .toList());
-        Map<Integer, Integer> rankCount = new HashMap<>();
-        for (Integer card : ranksList) {
-            rankCount.put(card, rankCount.getOrDefault(card, 0) + 1);
-        }
-        Integer maxRank = rankCount.entrySet().stream()
-                .filter(entry -> entry.getValue() == amount)
-                .map(Map.Entry::getKey)
-                .max(Integer::compare).orElse(0);
 
-        if (maxRank == 0) return null;
-        ranksList.removeIf(rank -> Objects.equals(rank, maxRank));
-        return new HandWeight(combination,
-                maxRank,
-                ranksList.stream().map(rank -> rank.toString() + "*").toList());
-    }
 
     /**
      * проверяет корректность карт на столе, возвращает список карт.

@@ -1,14 +1,39 @@
 package org.example.solution;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.example.solution.GoodDealer.searchMaxRankOfStackedCards;
 import static org.example.solution.Parser.parseRank;
 
 public class CombinationDefiner {
-    protected static HandWeight isRoyalFlush(List<String> cardsList) {
+    @SuppressWarnings("unchecked")
+    private static final Function<List<String>, HandWeight>[] CHECKS = new Function[]{
+            (Function<List<String>, HandWeight>) CombinationDefiner::isRoyalFlush,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isStraightFlush,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isKare,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isFullHouse,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isFlush,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isStraight,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isSet,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isTwoPair,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isOnePair,
+            (Function<List<String>, HandWeight>) CombinationDefiner::isHighCard,
+    };
+
+    protected static HandWeight getHandWeight(List<String> player1Cards) {
+        HandWeight hand = new HandWeight();
+        for (Function<List<String>, HandWeight> check : CHECKS) {
+            HandWeight result = check.apply(player1Cards);
+            if (result != null) {
+                hand = result;
+                break;
+            }
+        }
+        return hand;
+    }
+
+    private static HandWeight isRoyalFlush(List<String> cardsList) {
         List<String> ranks = List.of("10", "J", "Q", "K", "A");
         List<String> suits = List.of("C", "D", "H", "S");
         for (String suit : suits) {
@@ -24,7 +49,7 @@ public class CombinationDefiner {
         return null;
     }
 
-    protected static HandWeight isStraightFlush(List<String> cardsList) {
+    private static HandWeight isStraightFlush(List<String> cardsList) {
         List<String> ranks = List.of("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A");
         List<String> suits = List.of("C", "D", "H", "S");
 
@@ -47,11 +72,11 @@ public class CombinationDefiner {
         return null;
     }
 
-    protected static HandWeight isKare(List<String> cardsList) {
+    private static HandWeight isKare(List<String> cardsList) {
         return searchMaxRankOfStackedCards(cardsList, 4, Combination.Kare);
     }
 
-    protected static HandWeight isFullHouse(List<String> cardsList) {
+    private static HandWeight isFullHouse(List<String> cardsList) {
         HandWeight setPart = searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
         if (setPart == null) return null;
         int setWeight = setPart.getWeight() * 100;
@@ -66,7 +91,7 @@ public class CombinationDefiner {
                 pairPart.getUnusedCard());
     }
 
-    protected static HandWeight isFlush(List<String> cardsList) {
+    private static HandWeight isFlush(List<String> cardsList) {
         List<String> suits = List.of("C", "D", "H", "S");
 
         for (String suit : suits) {
@@ -86,7 +111,7 @@ public class CombinationDefiner {
         return null;
     }
 
-    protected static HandWeight isStraight(List<String> cardsList) {
+    private static HandWeight isStraight(List<String> cardsList) {
         List<String> ranks = List.of("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A");
 
         for (int i = ranks.size() - 1; i >= 5; i--) {
@@ -101,11 +126,11 @@ public class CombinationDefiner {
         return null;
     }
 
-    protected static HandWeight isSet(List<String> cardsList) {
+    private static HandWeight isSet(List<String> cardsList) {
         return searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
     }
 
-    protected static HandWeight isTwoPair(List<String> cardsList) {
+    private static HandWeight isTwoPair(List<String> cardsList) {
         HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
         if (firstPart == null) return null;
         int firstPairWeight = firstPart.getWeight() * 100;
@@ -120,16 +145,38 @@ public class CombinationDefiner {
                 secondPair.getUnusedCard());
     }
 
-    protected static HandWeight isOnePair(List<String> cardsList) {
+    private static HandWeight isOnePair(List<String> cardsList) {
         return searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
     }
 
-    protected static HandWeight isHighCard(List<String> cardsList) {
+    private static HandWeight isHighCard(List<String> cardsList) {
         Integer weight = cardsList.subList(0, 2).stream()
                 .map(card -> card.substring(0, card.length() - 1))
                 .map(Parser::parseRank)
                 .max(Integer::compareTo).orElse(0);
 
         return new HandWeight(Combination.HighCard, weight, cardsList.subList(0, 2));
+    }
+
+    private static HandWeight searchMaxRankOfStackedCards(List<String> cardsList, int amount, Combination combination) {
+        List<Integer> ranksList = new ArrayList<>(cardsList
+                .stream()
+                .map(card -> card.substring(0, card.length() - 1))
+                .map(Parser::parseRank)
+                .toList());
+        Map<Integer, Integer> rankCount = new HashMap<>();
+        for (Integer card : ranksList) {
+            rankCount.put(card, rankCount.getOrDefault(card, 0) + 1);
+        }
+        Integer maxRank = rankCount.entrySet().stream()
+                .filter(entry -> entry.getValue() == amount)
+                .map(Map.Entry::getKey)
+                .max(Integer::compare).orElse(0);
+
+        if (maxRank == 0) return null;
+        ranksList.removeIf(rank -> Objects.equals(rank, maxRank));
+        return new HandWeight(combination,
+                maxRank,
+                ranksList.stream().map(rank -> rank.toString() + "*").toList());
     }
 }
