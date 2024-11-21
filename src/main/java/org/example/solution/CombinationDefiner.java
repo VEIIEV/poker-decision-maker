@@ -58,13 +58,14 @@ public class CombinationDefiner {
                     .filter(card -> card.endsWith(suit))
                     .map(card -> card.substring(0, card.length() - 1))
                     .toList();
-
-            for (int i = ranks.size() - 1; i >= 5; i--) {
-                List<String> straight = ranks.subList(i - 5, i);
-                if (new HashSet<>(suitedCards).containsAll(straight)) {
-                    List<String> unused = cardsList.subList(0, 2);
-                    unused.removeIf(suitedCards::contains);
-                    return new HandWeight(Combination.StraightFlush, i, unused);
+            if (suitedCards.size() > 4) {
+                for (int i = ranks.size() - 1; i >= 5; i--) {
+                    List<String> straight = ranks.subList(i - 5, i);
+                    if (new HashSet<>(suitedCards).containsAll(straight)) {
+                        List<String> unused = cardsList.subList(0, 2);
+                        unused.removeIf(suitedCards::contains);
+                        return new HandWeight(Combination.StraightFlush, i + 1, unused);
+                    }
                 }
             }
         }
@@ -116,10 +117,10 @@ public class CombinationDefiner {
 
         for (int i = ranks.size() - 1; i >= 5; i--) {
             List<String> straight = ranks.subList(i - 5, i);
-            if (new HashSet<>(cardsList).containsAll(straight)) {
+            if (new HashSet<>(cardsList.stream().map(card -> card.substring(0, 1)).toList()).containsAll(straight)) {
                 List<String> unused = cardsList.subList(0, 2);
                 unused.removeIf(straight::contains);
-                return new HandWeight(Combination.Straight, i, unused);
+                return new HandWeight(Combination.Straight, i + 1, unused);
             }
         }
 
