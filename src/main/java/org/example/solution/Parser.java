@@ -23,7 +23,9 @@ public class Parser {
     }
 
     protected static List<String> parseCards(String cardsInString) {
-        if (cardsInString == null) return new ArrayList<>();
+        if (cardsInString == null) {
+            return new ArrayList<>();
+        }
         List<String> cards = new ArrayList<>();
         int i = 0;
         if (cardsInString.length() < 2) {

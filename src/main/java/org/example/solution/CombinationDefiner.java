@@ -79,14 +79,18 @@ public class CombinationDefiner {
 
     private static HandWeight isFullHouse(List<String> cardsList) {
         HandWeight setPart = searchMaxRankOfStackedCards(cardsList, 3, Combination.Set);
-        if (setPart == null) return null;
+        if (setPart == null) {
+            return null;
+        }
         int setWeight = setPart.getWeight() * 100;
         List<String> remainsCards = cardsList
                 .stream()
                 .map(card -> parseRank(card.substring(0, card.length() - 1)) == setPart.getWeight() ? "0*" : card)
                 .toList();
         HandWeight pairPart = searchMaxRankOfStackedCards(remainsCards, 2, Combination.OnePair);
-        if (pairPart == null) return null;
+        if (pairPart == null) {
+            return null;
+        }
         return new HandWeight(Combination.FullHouse,
                 setWeight + pairPart.getWeight(),
                 pairPart.getUnusedCard());
@@ -133,14 +137,18 @@ public class CombinationDefiner {
 
     private static HandWeight isTwoPair(List<String> cardsList) {
         HandWeight firstPart = searchMaxRankOfStackedCards(cardsList, 2, Combination.OnePair);
-        if (firstPart == null) return null;
+        if (firstPart == null) {
+            return null;
+        }
         int firstPairWeight = firstPart.getWeight() * 100;
         List<String> remainsCards = cardsList
                 .stream()
                 .map(card -> parseRank(card.substring(0, card.length() - 1)) == firstPart.getWeight() ? "0*" : card)
                 .toList();
         HandWeight secondPair = searchMaxRankOfStackedCards(remainsCards, 2, Combination.OnePair);
-        if (secondPair == null) return null;
+        if (secondPair == null) {
+            return null;
+        }
         return new HandWeight(Combination.TwoPair,
                 firstPairWeight + secondPair.getWeight(),
                 secondPair.getUnusedCard());
@@ -174,7 +182,9 @@ public class CombinationDefiner {
                 .map(Map.Entry::getKey)
                 .max(Integer::compare).orElse(0);
 
-        if (maxRank == 0) return null;
+        if (maxRank == 0) {
+            return null;
+        }
         ranksList.removeIf(rank -> Objects.equals(rank, maxRank));
         return new HandWeight(combination,
                 maxRank,

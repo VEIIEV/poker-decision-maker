@@ -52,9 +52,13 @@ public class HandWeight implements Comparable<HandWeight> {
     @Override
     public int compareTo(HandWeight other) {
         int combinationComparison = this.combination.compareTo(other.combination);
-        if (combinationComparison != 0) return combinationComparison;
+        if (combinationComparison != 0) {
+            return combinationComparison;
+        }
         combinationComparison = Integer.compare(this.weight, other.weight);
-        if (combinationComparison != 0) return combinationComparison;
+        if (combinationComparison != 0) {
+            return combinationComparison;
+        }
         if (this.unusedCard.isEmpty() && other.unusedCard.isEmpty()) {
             return 0;
         }
